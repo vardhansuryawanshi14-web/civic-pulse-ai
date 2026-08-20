@@ -1,0 +1,90 @@
+/* From react-bits LineSidebar. --effect (0..1) is driven per item by the rAF
+   lerp in LineNav.jsx, so every property below reads the same continuously
+   animating value and stays in step, with no CSS transitions to stagger. */
+.line-nav {
+  --accent-color: #7dd3fc;
+  --text-color: #c2c6d6;
+  --marker-color: #424754;
+  --marker-length: 28px;
+  --marker-gap: 8px;
+  --tick-scale: 0.5;
+  --max-shift: 18px;
+  --item-gap: 18px;
+
+  position: relative;
+  padding-left: calc(var(--marker-length) + var(--marker-gap));
+}
+
+.line-nav__list {
+  list-style: none;
+  margin: 0;
+  padding: 0.5rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--item-gap);
+}
+
+.line-nav__item {
+  position: relative;
+}
+
+/* widen the pointer target so rows react a touch before the cursor arrives */
+.line-nav__item::before {
+  content: '';
+  position: absolute;
+  inset: -6px -24px;
+}
+
+.line-nav__link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  font-family: var(--font-label);
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: color-mix(in srgb, var(--accent-color) calc(var(--effect, 0) * 100%), var(--text-color));
+  transform: translateX(calc(var(--effect, 0) * var(--max-shift)));
+}
+
+.line-nav__link:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+.line-nav__marker {
+  position: absolute;
+  top: 50%;
+  left: calc(-1 * var(--marker-length) - var(--marker-gap));
+  height: 1px;
+  width: var(--marker-length);
+  background-color: color-mix(
+    in srgb,
+    var(--accent-color) calc(var(--effect, 0) * 100%),
+    var(--marker-color)
+  );
+  transform-origin: left center;
+  transform: translateY(-50%) scaleX(calc(0.7 + var(--effect, 0) * 0.5));
+}
+
+/* short tick centred in the gap between two rows, growing with proximity */
+.line-nav__item:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: calc(100% + var(--item-gap) / 2);
+  left: calc(-1 * var(--marker-length) - var(--marker-gap));
+  height: 1px;
+  width: calc(var(--marker-length) * var(--tick-scale));
+  background-color: var(--marker-color);
+  opacity: 0.5;
+  transform-origin: left center;
+  transform: translateY(-50%) scaleX(calc(0.7 + var(--effect, 0) * 0.6));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .line-nav__link {
+    transform: none;
+  }
+}

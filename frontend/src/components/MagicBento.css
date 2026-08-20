@@ -1,0 +1,263 @@
+﻿/* Scoped to the bento grid — the upstream file put these on :root along with a
+   color-scheme switch, which would leak into the rest of the app. */
+.card-grid {
+  --white: hsl(0, 0%, 100%);
+  --purple-glow: rgba(125, 180, 255, 0.2);
+  --border-color: #2f293a;
+  --background-dark: #120f17;
+
+  display: grid;
+  gap: 0.5em;
+  padding: 0.75em;
+  max-width: 54em;
+  margin-inline: auto;
+  font-size: clamp(1rem, 0.9rem + 0.5vw, 1.5rem);
+}
+
+.magic-bento-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  aspect-ratio: 4/3;
+  min-height: 200px;
+  width: 100%;
+  max-width: 100%;
+  padding: 1.25em;
+  border-radius: 20px;
+  border: 1px solid var(--border-color);
+  background: var(--background-dark);
+  font-weight: 300;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(12px);
+
+  --glow-x: 50%;
+  --glow-y: 50%;
+  --glow-intensity: 0;
+  --glow-radius: 200px;
+}
+
+/* Free-standing cards outside the 6-card grid: no forced 4:3 box, normal text.
+   They sit on their own at rest — visible edge and shadow, no hover required —
+   and hover only adds the lift, glow and particles on top. */
+.magic-bento-card--free {
+  display: block;
+  aspect-ratio: auto;
+  /* No forced height: the card sets overflow:hidden, so height:100% clipped its
+     own content, and min-height:100% stretched it to the whole column. Grid and
+     flex already stretch these to equal heights on their own. */
+  height: auto;
+  min-height: 0;
+  padding: 1.5rem;
+  border-radius: 16px;
+  border-color: rgba(255, 255, 255, 0.14);
+  box-shadow:
+    0 4px 18px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  font-weight: inherit;
+}
+
+/* Glow and particles, but the card itself never shifts under the cursor. */
+.magic-bento-card--static:hover {
+  transform: none;
+}
+
+/* For cards whose content reaches the edge, e.g. a photo beside the text.
+   The base card stacks its children; beside means a row, or the 135px photo
+   column turns into a stub band above the text. */
+.magic-bento-card--flush {
+  display: flex;
+  flex-direction: row;
+  padding: 0;
+}
+
+.magic-bento-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.magic-bento-card__header,
+.magic-bento-card__content {
+  display: flex;
+  position: relative;
+  color: var(--white);
+}
+
+.magic-bento-card__header {
+  gap: 0.75em;
+  justify-content: space-between;
+}
+
+.magic-bento-card__content {
+  flex-direction: column;
+}
+
+.magic-bento-card__label {
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+.magic-bento-card__title,
+.magic-bento-card__description {
+  --clamp-title: 1;
+  --clamp-desc: 2;
+}
+
+.magic-bento-card__title {
+  font-weight: 600;
+  font-size: 17px;
+  margin: 0 0 0.4em;
+}
+
+.magic-bento-card__description {
+  font-size: 13px;
+  line-height: 1.45;
+  opacity: 0.75;
+}
+
+.magic-bento-card--text-autohide .magic-bento-card__title,
+.magic-bento-card--text-autohide .magic-bento-card__description {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.magic-bento-card--text-autohide .magic-bento-card__title {
+  -webkit-line-clamp: var(--clamp-title);
+  line-clamp: var(--clamp-title);
+}
+
+.magic-bento-card--text-autohide .magic-bento-card__description {
+  -webkit-line-clamp: var(--clamp-desc);
+  line-clamp: var(--clamp-desc);
+}
+
+@media (max-width: 599px) {
+  .card-grid {
+    grid-template-columns: 1fr;
+    width: 90%;
+    margin: 0 auto;
+    padding: 0.5em;
+  }
+
+  .magic-bento-card {
+    width: 100%;
+    min-height: 180px;
+  }
+}
+
+@media (min-width: 600px) {
+  .card-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .card-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .magic-bento-card:nth-child(3) {
+    grid-column: span 2;
+    grid-row: span 2;
+  }
+
+  .magic-bento-card:nth-child(4) {
+    grid-column: 1 / span 2;
+    grid-row: 2 / span 2;
+  }
+
+  .magic-bento-card:nth-child(6) {
+    grid-column: 4;
+    grid-row: 3;
+  }
+}
+
+/* Border glow effect */
+.magic-bento-card--border-glow::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  padding: 6px;
+  background: radial-gradient(
+    var(--glow-radius) circle at var(--glow-x) var(--glow-y),
+    rgba(125, 180, 255, calc(var(--glow-intensity) * 0.8)) 0%,
+    rgba(125, 180, 255, calc(var(--glow-intensity) * 0.4)) 30%,
+    transparent 60%
+  );
+  border-radius: inherit;
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+  z-index: 1;
+}
+
+.magic-bento-card--border-glow:hover::after {
+  opacity: 1;
+}
+
+.magic-bento-card--border-glow:hover {
+  box-shadow:
+    0 4px 20px rgba(46, 24, 78, 0.4),
+    0 0 30px var(--purple-glow);
+}
+
+.particle-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.particle::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: rgba(125, 180, 255, 0.2);
+  border-radius: 50%;
+  z-index: -1;
+}
+
+.particle-container:hover {
+  box-shadow:
+    0 4px 20px rgba(46, 24, 78, 0.2),
+    0 0 30px var(--purple-glow);
+}
+
+/* Global spotlight styles */
+.global-spotlight {
+  mix-blend-mode: screen;
+  will-change: transform, opacity;
+  z-index: 200 !important;
+  pointer-events: none;
+}
+
+.bento-section {
+  position: relative;
+  user-select: none;
+}
+
+/* Wins over the generic hover shadows above, so hovering a free-standing card
+   deepens it instead of flattening the resting shadow. */
+.magic-bento-card--free:hover {
+  border-color: rgba(125, 180, 255, 0.35);
+  box-shadow:
+    0 12px 32px rgba(0, 0, 0, 0.55),
+    0 0 34px rgba(125, 180, 255, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+

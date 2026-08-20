@@ -1,0 +1,230 @@
+/* Geist Mono everywhere — the technical, wide-tracked look of the CIVIC.OS
+   reference. Geist (proportional) stays loaded as the fallback face. */
+@import url("https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&family=Geist:wght@100..900&display=swap");
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --font-heading: "Geist Mono", ui-monospace, monospace;
+  --font-body: "Geist Mono", ui-monospace, monospace;
+  --font-label: "Geist Mono", ui-monospace, monospace;
+  --font-mono-data: "Geist Mono", ui-monospace, monospace;
+
+  /* Material-3 surface ladder from the reference config */
+  --color-surface: #131313;
+  --color-surface-lowest: #0a0a0a;
+  --color-surface-low: #141414;
+  --color-surface-container: #1c1c1c;
+  --color-surface-high: #2a2a2a;
+  --color-surface-highest: #353534;
+  --color-on-surface: #e5e2e1;
+  --color-on-surface-variant: #c2c6d6;
+  --color-outline: #8c909f;
+  --color-outline-variant: #424754;
+  --color-on-primary: #002e6a;
+  --color-primary-container: #4d8eff;
+  --color-on-primary-container: #00285d;
+  --color-secondary-container: #3131c0;
+  --color-on-secondary-container: #b0b2ff;
+  /* Light blue pulled from the landing page's liquid-ether field */
+  --color-accent-sky: #7dd3fc;
+  --color-on-accent-sky: #062b40;
+  --color-tertiary: #4edea3;
+  --color-on-tertiary: #003824;
+  --color-tertiary-container: #00a572;
+  --color-error: #ffb4ab;
+  --color-error-container: #93000a;
+  --color-on-error-container: #ffdad6;
+  --color-inverse-surface: #e5e2e1;
+  --color-inverse-on-surface: #313030;
+}
+
+@theme inline {
+  --font-sans: var(--font-body);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--destructive);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) * 0.5);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) * 1.5);
+  --radius-xl: calc(var(--radius) * 2);
+}
+
+/* The reference ships two conflicting palettes: its DESIGN.md prose says
+   #3B82F6 on #0A0A0A, while the front-matter and every screen's Tailwind
+   config say #adc6ff on #131313. The screens win — that is what renders. */
+:root {
+  --background: #0a0a0a;
+  --foreground: #e5e2e1;
+  --card: #141414;
+  /* hover accent named in the brief, kept separate from the pale-blue primary */
+  --accent-blue: #3b82f6;
+  --card-foreground: #e5e2e1;
+  --popover: #201f1f;
+  --popover-foreground: #e5e2e1;
+  --primary: #adc6ff;
+  --primary-foreground: #002e6a;
+  --secondary: #c0c1ff;
+  --secondary-foreground: #1000a9;
+  --muted: #201f1f;
+  --muted-foreground: #c2c6d6;
+  --accent: #2a2a2a;
+  --accent-foreground: #e5e2e1;
+  --success: #4edea3;
+  --warning: #f59e0b;
+  --destructive: #ffb4ab;
+  --border: #262626;
+  --input: #262626;
+  --ring: #adc6ff;
+  --radius: 0.5rem;
+  --sidebar: #0e0e0e;
+  --sidebar-foreground: #e5e2e1;
+  --sidebar-primary: #adc6ff;
+  --sidebar-primary-foreground: #002e6a;
+  --sidebar-accent: #3131c0;
+  --sidebar-accent-foreground: #b0b2ff;
+  --sidebar-border: #262626;
+  --sidebar-ring: #adc6ff;
+}
+
+body {
+  margin: 0;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    /* wide content (tables, maps) scrolls inside its own container — the page
+       itself must never scroll sideways on a phone */
+    overflow-x: hidden;
+  }
+
+  h1,
+  h2,
+  h3 {
+    letter-spacing: -0.015em;
+  }
+
+  ::selection {
+    background: color-mix(in oklch, var(--primary) 35%, transparent);
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #2a2a2a;
+    border-radius: 99px;
+    border: 2px solid var(--background);
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #353534;
+  }
+}
+
+@layer components {
+  /* Card hover per ANIMATIONS.md §3: 2px lift, border toward the accent, 150ms */
+  .lift {
+    transition:
+      transform 0.15s ease,
+      border-color 0.15s ease,
+      background-color 0.15s ease;
+  }
+
+  .lift:hover {
+    transform: translateY(-3px);
+    border-color: rgb(59 130 246 / 0.4);
+  }
+
+  /* Radial glow behind stat-card icons so they read as lit, not flat */
+  .icon-glow {
+    position: relative;
+  }
+
+  .icon-glow::before {
+    content: "";
+    position: absolute;
+    inset: -55%;
+    border-radius: 9999px;
+    background: radial-gradient(circle, rgb(59 130 246 / 0.22), transparent 68%);
+    filter: blur(10px);
+    pointer-events: none;
+  }
+
+  /* Shared indicator track/fill, so every bar in the app behaves alike */
+  .track {
+    overflow: hidden;
+    border-radius: 9999px;
+    background: var(--color-surface-highest);
+  }
+
+  .track-fill {
+    display: block;
+    height: 100%;
+    border-radius: 9999px;
+    transition: width 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .shimmer {
+    background: linear-gradient(90deg, var(--muted) 25%, #2a2a2a 37%, var(--muted) 63%);
+    background-size: 400% 100%;
+    animation: shimmer 1.4s ease infinite;
+  }
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shimmer {
+    animation: none;
+  }
+}

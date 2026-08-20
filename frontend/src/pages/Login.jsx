@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom'
 
-import { Lock, Mail } from 'lucide-react'
+import { ArrowLeft, Lock, Mail } from 'lucide-react'
 
 import AuthShell, {
   Checkbox,
@@ -103,6 +103,16 @@ export default function Login() {
           Register
         </Link>
       </p>
+
+      <div className="mt-6 border-t border-outline-variant/40 pt-4">
+        <Link
+          to="/"
+          className="flex items-center justify-center gap-2 text-sm text-on-surface transition-colors hover:text-accent-sky"
+        >
+          <ArrowLeft className="size-4" />
+          Back to Home
+        </Link>
+      </div>
     </AuthShell>
   )
 }

@@ -5,12 +5,20 @@ import api from '@/api/axios'
 import { ArrowLeft, Fingerprint } from 'lucide-react'
 
 import AuthShell, { FormError, FormNotice, SubmitButton } from '@/components/AuthShell'
-import { errorMessage } from '@/context/AuthContext'
+import { HOME_FOR, errorMessage, useAuth } from '@/context/AuthContext'
 
 const LENGTH = 6
 
-export default function VerifyOTP() {
+/**
+ * One code screen for both flows. `mode="reset"` hands off to /reset-password,
+ * `mode="login"` trades the code for a token and drops the user on their
+ * dashboard. Only the three endpoints and the back link differ.
+ */
+export default function VerifyOTP({ mode = 'reset' }) {
   const navigate = useNavigate()
+  const { verifyLoginOtp } = useAuth()
+  const signIn = mode === 'login'
+  const startOver = signIn ? '/login' : '/forgot-password'
   const email = useLocation().state?.email
   const boxes = useRef([])
   const [digits, setDigits] = useState(Array(LENGTH).fill(''))
@@ -19,7 +27,7 @@ export default function VerifyOTP() {
   const [busy, setBusy] = useState(false)
 
   // reached directly without an email to verify — start over
-  if (!email) return <Navigate to="/forgot-password" replace />
+  if (!email) return <Navigate to={startOver} replace />
 
   const code = digits.join('')
 
@@ -61,8 +69,13 @@ export default function VerifyOTP() {
 
     setBusy(true)
     try {
-      await api.post('/api/auth/verify-otp', { email, otp_code: code })
-      navigate('/reset-password', { state: { email } })
+      if (signIn) {
+        const { user } = await verifyLoginOtp(email, code)
+        navigate(HOME_FOR[user.role] || '/login', { replace: true })
+      } else {
+        await api.post('/api/auth/verify-otp', { email, otp_code: code })
+        navigate('/reset-password', { state: { email } })
+      }
     } catch (err) {
       setError(errorMessage(err, 'Invalid OTP'))
     } finally {
@@ -74,7 +87,7 @@ export default function VerifyOTP() {
     setError('')
     setNotice('')
     try {
-      await api.post('/api/auth/forgot-password', { email })
+      await api.post(signIn ? '/api/auth/resend-otp' : '/api/auth/forgot-password', { email })
       setDigits(Array(LENGTH).fill(''))
       setNotice('A new OTP has been sent')
     } catch (err) {
@@ -127,7 +140,7 @@ export default function VerifyOTP() {
       </form>
 
       <Link
-        to="/forgot-password"
+        to={startOver}
         className="mt-5 flex items-center justify-center gap-2 text-sm text-on-surface transition-colors hover:text-accent-sky"
       >
         <ArrowLeft className="size-4" />

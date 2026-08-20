@@ -147,12 +147,16 @@ def send_email(to_address, subject, body, blocking=False):
     return None
 
 
-def send_otp(to_address, otp_code):
-    """Returns None on success, or a reason string the caller can report."""
+def send_otp(to_address, otp_code, purpose="password reset"):
+    """Mail a one-time code. `purpose` reads inside both the subject and the body,
+    so the same code path serves password reset and sign-in verification.
+
+    Returns None on success, or a reason string the caller can report.
+    """
     return send_email(
         to_address,
-        "Your Password Reset OTP - Civic Issue System",
-        f"Your OTP for password reset is: {otp_code}\n"
+        f"Your {purpose.title()} OTP - Civic Issue System",
+        f"Your OTP for {purpose} is: {otp_code}\n"
         "This OTP is valid for 10 minutes. Do not share it with anyone.",
         blocking=True,
     )

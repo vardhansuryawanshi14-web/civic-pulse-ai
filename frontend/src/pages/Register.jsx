@@ -33,8 +33,12 @@ export default function Register() {
     setBusy(true)
     try {
       const { confirm: _confirm, ...payload } = form
-      const me = await register(payload)
-      navigate(HOME_FOR[me.role] || '/login', { replace: true })
+      const result = await register(payload)
+      if (result.otp_required) {
+        navigate('/verify-login', { state: { email: result.email } })
+        return
+      }
+      navigate(HOME_FOR[result.user.role] || '/login', { replace: true })
     } catch (err) {
       setError(errorMessage(err, 'Registration failed'))
     } finally {

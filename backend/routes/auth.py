@@ -41,6 +41,33 @@ def fail(message, code=400):
     return jsonify({"success": False, "message": message, "error_code": code}), code
 
 
+def issue_otp(email, purpose="password reset"):
+    """Replace any live OTP for this email with a fresh one and mail it.
+
+    Returns None on success, or the mail failure reason. A silent failure would
+    leave the user waiting for a code that never sent, so callers report it.
+    """
+    Otp.query.filter_by(email=email).delete()  # only one live OTP per email
+    code = f"{secrets.randbelow(1000000):06d}"
+    db.session.add(
+        Otp(
+            email=email,
+            otp_code=code,
+            expires_at=utcnow() + timedelta(minutes=OTP_VALIDITY_MINUTES),
+        )
+    )
+    db.session.commit()
+    return send_otp(email, code, purpose)
+
+
+def otp_sent(email):
+    """Login and register both stop here — no token until the code is verified."""
+    return ok(
+        {"otp_required": True, "email": email},
+        "We sent a 6-digit code to your email",
+    )
+
+
 def user_json(user):
     return {
         "id": user.id,
@@ -76,10 +103,12 @@ def register():
     db.session.add(user)
     db.session.commit()
 
-    return ok(
-        {"user": user_json(user), "token": create_access_token(user)},
-        "Registration successful",
-    )
+    # the account exists but stays unusable until the emailed code comes back,
+    # which is what proves the address belongs to whoever just signed up
+    failure = issue_otp(email, "sign-in")
+    if failure:
+        return fail(f"Could not send the verification code: {failure}", 502)
+    return otp_sent(email)
 
 
 @auth_bp.post("/login")
@@ -100,9 +129,61 @@ def login():
     if not user.is_active:
         return fail("This account has been deactivated", 403)
 
-    # the token lives in localStorage, so it already outlives a browser restart —
-    # "remember me" no longer changes anything and is accepted and ignored
+    # the password alone no longer logs anyone in — it only earns the right to a
+    # code at the address on file, and /verify-login-otp is what issues the token
+    failure = issue_otp(email, "sign-in")
+    if failure:
+        return fail(f"Could not send the sign-in code: {failure}", 502)
+    return otp_sent(email)
+
+
+@auth_bp.post("/verify-login-otp")
+def verify_login_otp():
+    """Second half of login and register: a correct code becomes the token."""
+    data = request.get_json(silent=True) or {}
+    email = (data.get("email") or "").strip().lower()
+    code = (data.get("otp_code") or "").strip()
+    if not email or not code:
+        return fail("Email and OTP are required")
+
+    otp = Otp.query.filter_by(email=email, otp_code=code, is_used=False).first()
+    if not otp:
+        return fail("Invalid OTP", 400)
+    if otp.expires_at < utcnow():
+        db.session.delete(otp)
+        db.session.commit()
+        return fail("OTP has expired. Request a new one", 400)
+
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        return fail("Account not found", 404)
+    if not user.is_active:
+        return fail("This account has been deactivated", 403)
+
+    # deleted rather than marked used: a spent sign-in code must not double as
+    # the proof of ownership that /reset-password looks for
+    db.session.delete(otp)
+    db.session.commit()
     return ok({"user": user_json(user), "token": create_access_token(user)}, "Login successful")
+
+
+@auth_bp.post("/resend-otp")
+def resend_otp():
+    """Resend a sign-in code. The verify screen has the email but not the password."""
+    data = request.get_json(silent=True) or {}
+    email = (data.get("email") or "").strip().lower()
+    if not email:
+        return fail("Email is required")
+
+    generic = "If an account exists for that email, a new code has been sent"
+    user = User.query.filter_by(email=email).first()
+    if not user or not user.password_hash:
+        return ok(message=generic)  # don't reveal which emails are registered
+
+    failure = issue_otp(email, "sign-in")
+    if failure:
+        return fail(f"Could not send the sign-in code: {failure}", 502)
+    return ok(message=generic)
 
 
 @auth_bp.post("/logout")
@@ -169,21 +250,10 @@ def forgot_password():
             "Please continue with Google to access your account."
         )
 
-    Otp.query.filter_by(email=email).delete()  # only one live OTP per email
-    code = f"{secrets.randbelow(1000000):06d}"
-    db.session.add(
-        Otp(
-            email=email,
-            otp_code=code,
-            expires_at=utcnow() + timedelta(minutes=OTP_VALIDITY_MINUTES),
-        )
-    )
-    db.session.commit()
-
     # a silent mail failure used to look identical to success here, so the user
     # sat waiting for a code that was never sent. The reason is not about the
     # account, so reporting it leaks nothing about who is registered.
-    failure = send_otp(email, code)
+    failure = issue_otp(email)
     if failure:
         return fail(f"Could not send the OTP email: {failure}", 502)
     return ok(message=generic)

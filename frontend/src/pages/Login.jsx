@@ -34,8 +34,12 @@ export default function Login() {
     setError('')
     setBusy(true)
     try {
-      const me = await login(form.email, form.password, form.remember)
-      navigate(HOME_FOR[me.role] || '/login', { replace: true })
+      const result = await login(form.email, form.password, form.remember)
+      if (result.otp_required) {
+        navigate('/verify-login', { state: { email: result.email } })
+        return
+      }
+      navigate(HOME_FOR[result.user.role] || '/login', { replace: true })
     } catch (err) {
       setError(errorMessage(err, 'Login failed'))
     } finally {

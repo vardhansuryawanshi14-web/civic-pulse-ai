@@ -36,18 +36,31 @@ export function AuthProvider({ children }) {
       .finally(() => setLoading(false))
   }, [])
 
+  /** Stores the token and user out of a login/register/verify response. */
+  const adopt = (data) => {
+    setToken(data.token)
+    setUser(data.user)
+    return data
+  }
+
+  // login and register now answer with { otp_required: true } instead of a token,
+  // so callers must send the person to the verify screen before reading .user
   const login = async (email, password, remember = false) => {
     const res = await api.post('/api/auth/login', { email, password, remember })
-    setToken(res.data.data.token)
-    setUser(res.data.data.user)
-    return res.data.data.user
+    const data = res.data.data
+    return data.otp_required ? data : adopt(data)
   }
 
   const register = async (payload) => {
     const res = await api.post('/api/auth/register', payload)
-    setToken(res.data.data.token)
-    setUser(res.data.data.user)
-    return res.data.data.user
+    const data = res.data.data
+    return data.otp_required ? data : adopt(data)
+  }
+
+  /** Trades a verified sign-in code for the token. */
+  const verifyLoginOtp = async (email, otpCode) => {
+    const res = await api.post('/api/auth/verify-login-otp', { email, otp_code: otpCode })
+    return adopt(res.data.data)
   }
 
   /** Adopts a token handed back by the Google callback in the URL. */
@@ -72,7 +85,9 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, loginWithToken, logout }}>
+    <AuthContext.Provider
+      value={{ user, loading, login, register, verifyLoginOtp, loginWithToken, logout }}
+    >
       {children}
     </AuthContext.Provider>
   )

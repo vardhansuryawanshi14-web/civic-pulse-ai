@@ -27,6 +27,16 @@ def citizen_only():
     return current_user.role == "citizen"
 
 
+def iso(dt):
+    """Serialize a stored (naive UTC) timestamp for the browser.
+
+    The trailing Z is what makes it unambiguous: JavaScript reads a date-time
+    string without a zone as local time, which turned every fresh row into one
+    that looked hours old.
+    """
+    return dt.isoformat() + "Z" if dt else None
+
+
 def complaint_json(c):
     return {
         "id": c.id,
@@ -43,8 +53,8 @@ def complaint_json(c):
         # image in the list. The migration clears photo_path on the old rows
         # whose file Railway deleted, so a filename now means bytes exist.
         "has_photo": bool(c.photo_path),
-        "created_at": c.created_at.isoformat() if c.created_at else None,
-        "updated_at": c.updated_at.isoformat() if c.updated_at else None,
+        "created_at": iso(c.created_at),
+        "updated_at": iso(c.updated_at),
     }
 
 
@@ -265,7 +275,7 @@ def list_notifications():
                     "complaint_id": n.complaint_id,
                     "message": n.message,
                     "is_read": bool(n.is_read),
-                    "created_at": n.created_at.isoformat() if n.created_at else None,
+                    "created_at": iso(n.created_at),
                 }
                 for n in notifications
             ]

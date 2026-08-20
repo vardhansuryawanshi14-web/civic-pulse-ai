@@ -1,4 +1,4 @@
-from models import db
+from models import db, utcnow
 
 
 class Otp(db.Model):
@@ -9,4 +9,4 @@ class Otp(db.Model):
     otp_code = db.Column(db.String(6), nullable=False)
     expires_at = db.Column(db.TIMESTAMP, nullable=False)
     is_used = db.Column(db.Boolean, default=False)
-    created_at = db.Column(db.TIMESTAMP, server_default=db.func.now())
+    created_at = db.Column(db.TIMESTAMP, default=utcnow, server_default=db.func.now())

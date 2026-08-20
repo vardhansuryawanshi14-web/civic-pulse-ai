@@ -1,6 +1,6 @@
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from models import db
+from models import db, utcnow
 
 
 class User(db.Model):
@@ -16,7 +16,7 @@ class User(db.Model):
     ward = db.Column(db.String(100))
     phone = db.Column(db.String(20))
     is_active = db.Column(db.Boolean, default=True)
-    created_at = db.Column(db.TIMESTAMP, server_default=db.func.now())
+    created_at = db.Column(db.TIMESTAMP, default=utcnow, server_default=db.func.now())
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)

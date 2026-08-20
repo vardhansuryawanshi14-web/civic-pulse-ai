@@ -1,4 +1,4 @@
-from models import db
+from models import db, utcnow
 
 
 class Complaint(db.Model):
@@ -32,7 +32,7 @@ class Complaint(db.Model):
         db.Enum("Open", "In Progress", "Resolved"), default="Open"
     )
     officer_id = db.Column(db.Integer, db.ForeignKey("users.id"))
-    created_at = db.Column(db.TIMESTAMP, server_default=db.func.now())
+    created_at = db.Column(db.TIMESTAMP, default=utcnow, server_default=db.func.now())
     updated_at = db.Column(
-        db.TIMESTAMP, server_default=db.func.now(), onupdate=db.func.now()
+        db.TIMESTAMP, default=utcnow, onupdate=utcnow, server_default=db.func.now()
     )

@@ -1,12 +1,12 @@
 import os
 import secrets
-from datetime import datetime, timedelta, timezone
+from datetime import timedelta
 
 from authlib.integrations.flask_client import OAuth
 from flask import Blueprint, current_app, jsonify, redirect, request, url_for
 from flask_jwt_extended import create_access_token, current_user, jwt_required
 
-from models import db, User, Otp
+from models import db, utcnow, User, Otp
 from services.district import normalize_district
 from services.email_service import send_otp
 
@@ -26,11 +26,6 @@ def init_oauth(app):
         server_metadata_url="https://accounts.google.com/.well-known/openid-configuration",
         client_kwargs={"scope": "openid email profile"},
     )
-
-
-def utcnow():
-    """Naive UTC — matches how MySQL TIMESTAMP columns come back."""
-    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
 def ok(data=None, message=""):

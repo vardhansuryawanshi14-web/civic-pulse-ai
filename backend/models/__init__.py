@@ -1,6 +1,19 @@
+from datetime import datetime, timezone
+
 from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
+
+
+def utcnow():
+    """Naive UTC — the one clock every timestamp in this app is set from.
+
+    MySQL's NOW() follows the database server's timezone: UTC on Railway, local
+    time in development. Letting it fill created_at meant the same column held
+    different instants depending on where it was written, and the frontend, which
+    assumes UTC, rendered fresh rows as hours old.
+    """
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 from models.user import User  # noqa: E402
 from models.complaint import Complaint  # noqa: E402

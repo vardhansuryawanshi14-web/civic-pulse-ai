@@ -1,12 +1,11 @@
 import json
-from datetime import datetime, timezone
 
 from flask import Blueprint, request
 from flask_jwt_extended import current_user, jwt_required
 
-from models import db, Complaint, Notification, User
+from models import db, utcnow, Complaint, Notification, User
 from routes.auth import fail, ok
-from routes.citizen import complaint_json
+from routes.citizen import complaint_json, iso
 from services.email_service import send_email
 
 officer_bp = Blueprint("officer", __name__, url_prefix="/api/officer")
@@ -90,7 +89,7 @@ def add_note(complaint_id):
     notes.append(
         {
             "author": current_user.name,
-            "at": datetime.now(timezone.utc).replace(tzinfo=None).isoformat(),
+            "at": iso(utcnow()),
             "text": text[:1000],
         }
     )
